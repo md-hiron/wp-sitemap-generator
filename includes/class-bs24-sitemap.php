@@ -103,7 +103,7 @@ class BS24_Sitemap {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bs24-sitemap-loader.php';
+		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-loader.php';
 
 		$this->loader = new BS24_Sitemap_Loader();
 
@@ -111,19 +111,19 @@ class BS24_Sitemap {
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bs24-sitemap-i18n.php';
+		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-i18n.php';
 
 		/**
 		 * The class responsible for generating xml content file
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bs24-sitemap-xml-generator.php';
+		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-xml-generator.php';
 
 		/**
 		 * The class responsible for serve xml file to url
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bs24-sitemap-serve.php';
+		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-serve.php';
 
 		
 
@@ -162,9 +162,10 @@ class BS24_Sitemap {
 	private function serve_sitemap_xml_file(){
 
 		$sitemap_serve = new BS24_Sitemap_Serve();
-		
-		$this->loader->add_action( 'init', $sitemap_serve, 'serve_sitemap' );
+
 		$this->loader->add_action( 'init', $sitemap_serve, 'add_rewrite_rules' );
+		$this->loader->add_filter( 'query_vars', $sitemap_serve, 'add_query_ver' );
+		$this->loader->add_action( 'template_redirect', $sitemap_serve, 'sitemap_redirect' );
 	}
 
 

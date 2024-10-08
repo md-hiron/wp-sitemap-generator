@@ -33,59 +33,67 @@ class BS24_Sitemap_XML_Generator {
             return false;
         }
 
-        $query = new WP_Query( array(
-			'post_type'      => sanitize_text_field( $post_type ),
-			'posts_per_page' => -1,
-			'post_status'    => 'publish'
-		) );
+		$posts_per_page = 500;
+		$paged = 1;
+		$total_posts = 0;
 
-		// Get the total number of posts
-		$total_posts = $query->found_posts;
-
-		if ($total_posts == 0) {
-			error_log("No posts found for post type: $post_type");
-			return;
-		}
-	
-		// Log that the sitemap generation is starting
-		error_log("Starting to generate sitemap for post type: $post_type. Total posts: $total_posts");
-
-		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>');
+		//create empty xml structure
+		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/sitemap.xsl"?><urlset></urlset>');
     	$xml->addAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
-		// Log points to track progress
-		$progress_25 = round($total_posts * 0.25);
-		$progress_50 = round($total_posts * 0.50);
-		$progress_75 = round($total_posts * 0.75);
-	
-		$current_count = 0; // Counter to track the number of posts processed
+		//Loop through batches of posts
+		do{
+			$query = new WP_Query( array(
+				'post_type'      => sanitize_text_field( $post_type ),
+				'posts_per_page' => $posts_per_page,
+				'paged'          => $paged,
+				'post_status'    => 'publish'
+			) );
 
-		if( $query->have_posts() ){
-			while( $query->have_posts() ) {
-				$query->the_post();
-				$url = $xml->addChild('url');
-				$url->addChild('loc', esc_url( get_permalink() ) );
-				$url->addChild('lastmod', get_the_modified_date( 'c' ) );
-				$url->addChild('changefreq', 'daily' );
-				$url->addChild('priority', '0.8' );
+				// Get the total number of posts
+			$total_posts += $query->found_posts;
 
-				// Increment the counter
-				$current_count++;
+			if ($total_posts == 0) {
+				error_log("No posts found for post type: $post_type");
+				return;
+			}
+			// Log points to track progress
+			$progress_25 = round($total_posts * 0.25);
+			$progress_50 = round($total_posts * 0.50);
+			$progress_75 = round($total_posts * 0.75);
+		
+			$current_count = 0; // Counter to track the number of posts processed
 
-				// Log progress at 25%, 50%, and 75%
-				if ($current_count == $progress_25) {
-					error_log("Sitemap for post type $post_type: 25% complete. Processed $current_count of $total_posts.");
-				} elseif ($current_count == $progress_50) {
-					error_log("Sitemap for post type $post_type: 50% complete. Processed $current_count of $total_posts.");
-				} elseif ($current_count == $progress_75) {
-					error_log("Sitemap for post type $post_type: 75% complete. Processed $current_count of $total_posts.");
+			if( $query->have_posts() ){
+				while( $query->have_posts() ) {
+					$query->the_post();
+					$url = $xml->addChild('url');
+					$url->addChild('loc', esc_url( get_permalink() ) );
+					$url->addChild('lastmod', get_the_modified_date( 'c' ) );
+					$url->addChild('changefreq', 'daily' );
+					$url->addChild('priority', '0.8' );
+
+					// Increment the counter
+					$current_count++;
+
+					// Log progress at 25%, 50%, and 75%
+					if ($current_count == $progress_25) {
+						error_log("Sitemap for post type $post_type: 25% complete. Processed $current_count of $total_posts.");
+					} elseif ($current_count == $progress_50) {
+						error_log("Sitemap for post type $post_type: 50% complete. Processed $current_count of $total_posts.");
+					} elseif ($current_count == $progress_75) {
+						error_log("Sitemap for post type $post_type: 75% complete. Processed $current_count of $total_posts.");
+					}
 				}
-
-				wp_reset_postdata();
 			}
 
-			
-		}
+			//increament page number
+			$paged++;
+
+			//reset query
+			wp_reset_postdata();
+
+		}while( $query->have_posts() );
 
 		// Final log when sitemap is complete
 		error_log("Sitemap for post type $post_type is 100% complete. Total processed: $total_posts");
@@ -107,7 +115,7 @@ class BS24_Sitemap_XML_Generator {
 	 * @since    1.0.0
 	 */
 	public function generate_main_sitemap(){
-		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><sitemapindex></sitemapindex>');
+		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/mainsitemap.xsl"?><sitemapindex></sitemapindex>');
 		$xml->addAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
 		$sitemap_types = array('post-sitemap.xml', 'page-sitemap.xml', 'jobs-sitemap.xml');

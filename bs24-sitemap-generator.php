@@ -44,7 +44,7 @@ define('BS24_JOBS_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/jobs-sitemap.xml');
  * This action is documented in includes/class-bs24-sitemap-activator.php
  */
 function activate_bs24_sitemap() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bs24-sitemap-activator.php';
+	require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-activator.php';
 	BS24_Sitemap_Activator::activate();
 }
 
@@ -53,7 +53,7 @@ function activate_bs24_sitemap() {
  * This action is documented in includes/class-bs24-sitemap-deactivator.php
  */
 function deactivate_bs24_sitemap() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bs24-sitemap-deactivator.php';
+	require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-deactivator.php';
 	BS24_Sitemap_Deactivator::deactivate();
 }
 
@@ -64,7 +64,7 @@ register_deactivation_hook( __FILE__, 'deactivate_bs24_sitemap' );
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-bs24-sitemap.php';
+require BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap.php';
 
 /**
  * Begins execution of the plugin.
@@ -82,3 +82,5 @@ function run_bs24_sitemap() {
 
 }
 run_bs24_sitemap();
+
+

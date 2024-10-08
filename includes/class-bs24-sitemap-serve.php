@@ -26,27 +26,70 @@ class BS24_Sitemap_Serve {
 	 *
 	 * @since    1.0.0
 	 */
-    public function serve_sitemap(){
-       
-        if( isset( $_GET['bs4_sitemap'] ) ){
-            $file = sanitize_text_field( $_GET['bs4_sitemap'] );
-            $allowed_sitemaps = array('sitemap.xml', 'post-sitemap.xml', 'page-sitemap.xml', 'jobs-sitemap.xml');
+    public function sitemap_redirect(){
+        // get our custom query var
+        $sitemap_type = get_query_var('sitemap_type');
+        // Initialize the $file variable to false
+        $file = false;
 
-            if( in_array( $file, $allowed_sitemaps ) && file_exists( BS24_SITEMAP_DIR . $file ) ){
-                header('Content-Type: application/xml');
-                readfile(BS24_SITEMAP_DIR . $file);
+        if( $sitemap_type ){
+
+            switch ($sitemap_type) {
+                case 'post':
+                    $file = BS24_POST_SITEMAP;
+                    break;
+                case 'page':
+                    $file = BS24_PAGE_SITEMAP;
+                    break;
+                case 'jobs':
+                    $file = BS24_JOBS_SITEMAP;
+                    break;
+                case 'main':
+                    $file = BS24_MAIN_SITEMAP;
+                    break;
+                default:
+                    return; // Do nothing if an unknown sitemap is requested.
+            }
+
+            error_log("Serving sitemap: $file");
+
+            if( $file && file_exists( $file ) ){
+                // Serve the XML file
+                header('Content-Type: application/xml; charset=utf-8');
+                readfile($file);
                 exit;
+            }else{
+                 // If the file doesn't exist, handle the error (e.g., serve 404)
+                 status_header(404);
+                 echo __( 'Sitemap not found', 'bs24-sitemap' );
+                 exit;
             }
         }
+
+        //check if file exist
+        
         
     }
+
     /**
      * Add rewrite rules for the xml file
      * 
      * @since 1.0.0
      */
     public function add_rewrite_rules() {
-        add_rewrite_rule('^sitemap(-([a-z]+))?\.xml$', 'index.php?bs24_sitemap=sitemap$2.xml', 'top');
+        add_rewrite_rule('^post-sitemap\.xml$', 'index.php?sitemap_type=post', 'top');
+        add_rewrite_rule('^page-sitemap\.xml$', 'index.php?sitemap_type=page', 'top');
+        add_rewrite_rule('^jobs-sitemap\.xml$', 'index.php?sitemap_type=jobs', 'top');
+        add_rewrite_rule('^sitemap\.xml$', 'index.php?sitemap_type=main', 'top');
+    }
+
+    /**
+     * Add query var for sitemap rewrite rules
+     */
+    public function add_query_ver( $vars ){
+        $vars[] = 'sitemap_type';
+
+        return $vars;
     }
 
 }

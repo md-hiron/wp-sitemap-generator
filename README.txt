@@ -1,7 +1,5 @@
-=== Plugin Name ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: http://example.com/
-Tags: comments, spam
+=== BS24 Sitemap generator ===
+Contributors: Md Hiron Mia
 Requires at least: 3.0.1
 Tested up to: 3.4
 Stable tag: 4.3
@@ -45,7 +43,6 @@ e.g.
 
 1. Upload `bs24-sitemap.php` to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('bs24_sitemap_hook'); ?>` in your templates
 
 == Frequently Asked Questions ==
 

@@ -34,7 +34,7 @@ class BS24_Sitemap_Activator {
 		$sitemap_generator->generate_sitemaps();
 
 		$sitemap_serve = new BS24_Sitemap_Serve();
-		$sitemap_serve->serve_sitemap();
+		$sitemap_serve->add_rewrite_rules();
 
 		flush_rewrite_rules();
 
