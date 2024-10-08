@@ -47,11 +47,7 @@ class BS24_Sitemap_XML_Generator {
 		// Get the total number of posts
 		$total_posts = $query_all_posts->found_posts;
 	
-		// If no posts found, log error and exit
-		if ($total_posts == 0) {
-			error_log("No posts found for post type: $post_type");
-			return;
-		}
+		
 	
 		// Calculate progress points
 		$progress_25 = round($total_posts * 0.25);
@@ -61,6 +57,20 @@ class BS24_Sitemap_XML_Generator {
 		//create empty xml structure
 		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/sitemap.xsl"?><urlset></urlset>');
     	$xml->addAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+		// If no posts found, log error and exit
+		if ($total_posts == 0) {
+			// If no posts are found, log the event but still create the empty XML file
+			error_log("No posts found for post type: $post_type. Creating an empty sitemap.");
+	   
+			// Save the empty XML structure to file
+			$dom = new DOMDocument('1.0', 'UTF-8');
+			$dom->formatOutput = true;
+			$dom->loadXML($xml->asXML());
+			$dom->save($file_path);
+	
+			return;
+	   }
 
 		$current_count = 0; // Counter to track the number of posts processed
 		//Loop through batches of posts
@@ -139,7 +149,7 @@ class BS24_Sitemap_XML_Generator {
 
 		foreach ($sitemap_types as $sitemap) {
 			$sitemap_url = $xml->addChild('sitemap');
-			$sitemap_url->addChild('loc', BS24_SITEMAP_URL . 'sitemap/' . $sitemap);
+			$sitemap_url->addChild('loc', get_site_url() . '/' . $sitemap);
 			$sitemap_url->addChild('lastmod', gmdate('c', filemtime(BS24_SITEMAP_DIR . 'sitemap/' . $sitemap)));
 		}
 
