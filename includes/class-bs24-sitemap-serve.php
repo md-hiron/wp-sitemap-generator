@@ -61,7 +61,7 @@ class BS24_Sitemap_Serve {
             }else{
                  // If the file doesn't exist, handle the error (e.g., serve 404)
                  status_header(404);
-                 echo __( 'Sitemap not found', 'bs24-sitemap' );
+                 error_log("Sitemap not found");
                  exit;
             }
         }

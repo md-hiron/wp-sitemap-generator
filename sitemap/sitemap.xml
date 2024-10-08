@@ -1,3 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/xslt/mainsitemap.xsl"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/sitemap/post-sitemap.xml</loc><lastmod>2024-10-08T16:32:15+00:00</lastmod></sitemap><sitemap><loc>http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/sitemap/page-sitemap.xml</loc><lastmod>2024-10-08T16:32:15+00:00</lastmod></sitemap><sitemap><loc>http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/sitemap/jobs-sitemap.xml</loc><lastmod>1970-01-01T00:00:00+00:00</lastmod></sitemap></sitemapindex>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/sitemap/post-sitemap.xml</loc>
+    <lastmod>2024-10-08T21:22:45+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/sitemap/page-sitemap.xml</loc>
+    <lastmod>2024-10-08T21:22:45+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>http://localhost/wp-test/wp-content/plugins/bs24-sitemap-generator/sitemap/jobs-sitemap.xml</loc>
+    <lastmod>2024-10-08T21:19:39+00:00</lastmod>
+  </sitemap>
+</sitemapindex>

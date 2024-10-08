@@ -72,7 +72,7 @@ class BS24_Sitemap {
 		} else {
 			$this->version = '1.0.0';
 		}
-		$this->bs24_sitemap = 'bs24-sitemap';
+		$this->bs24_sitemap = 'bs24-sitemap-generator';
 
 		$this->load_dependencies();
 		$this->set_locale();

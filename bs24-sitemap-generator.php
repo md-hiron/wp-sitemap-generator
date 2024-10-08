@@ -14,7 +14,7 @@
  * Author URI:        https://hirondev.com/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       bs24-sitemap
+ * Text Domain:       bs24-sitemap-generator
  * Domain Path:       /languages
  */
 
@@ -39,6 +39,11 @@ define('BS24_MAIN_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/sitemap.xml');
 define('BS24_POST_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/post-sitemap.xml');
 define('BS24_PAGE_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/page-sitemap.xml');
 define('BS24_JOBS_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/jobs-sitemap.xml');
+
+
+
+
+
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-bs24-sitemap-activator.php
@@ -59,6 +64,7 @@ function deactivate_bs24_sitemap() {
 
 register_activation_hook( __FILE__, 'activate_bs24_sitemap' );
 register_deactivation_hook( __FILE__, 'deactivate_bs24_sitemap' );
+
 
 /**
  * The core plugin class that is used to define internationalization,
