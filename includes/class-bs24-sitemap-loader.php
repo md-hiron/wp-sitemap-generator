@@ -10,6 +10,10 @@
  * @subpackage BS24_Sitemap/includes
  */
 
+ if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * Register all actions and filters for the plugin.
  *

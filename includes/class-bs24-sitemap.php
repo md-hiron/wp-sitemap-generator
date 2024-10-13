@@ -13,6 +13,10 @@
  * @subpackage BS24_Sitemap/includes
  */
 
+ if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * The core plugin class.
  *
@@ -117,6 +121,12 @@ class BS24_Sitemap {
 		 * The class responsible for generating xml content file
 		 * of the plugin.
 		 */
+		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-video-sitemap-generator.php';
+
+		/**
+		 * The class responsible for generating xml content file
+		 * of the plugin.
+		 */
 		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-xml-generator.php';
 
 		/**
@@ -151,9 +161,9 @@ class BS24_Sitemap {
 	 */
 	private function generate_sitemap_xml(){
 
-		$sitemap_generator = new BS24_Sitemap_XML_Generator();
+		$sitemap_generator       = new BS24_Sitemap_XML_Generator();
 
-		$this->loader->add_action( 'bs24_sitemap_daily_sitemap_event', $sitemap_generator, 'generate_sitemaps' );
+		$this->loader->add_action( 'bs24_sitemap_daily_sitemap_event', $sitemap_generator, 'generate_daily_sitemaps' );
 	}
 
 	/**

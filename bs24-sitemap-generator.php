@@ -39,6 +39,7 @@ define('BS24_MAIN_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/sitemap.xml');
 define('BS24_POST_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/post-sitemap.xml');
 define('BS24_PAGE_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/page-sitemap.xml');
 define('BS24_JOBS_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/jobs-sitemap.xml');
+define('BS24_VIDEO_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/videos-sitemap.xml');
 
 
 

@@ -10,6 +10,10 @@
  * @subpackage BS24_Sitemap/includes
  */
 
+ if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * Fired during plugin deactivation.
  *

@@ -13,6 +13,10 @@
  * @subpackage BS24_Sitemap/includes
  */
 
+ if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * Define the internationalization functionality.
  *

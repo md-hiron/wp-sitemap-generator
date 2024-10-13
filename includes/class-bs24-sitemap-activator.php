@@ -10,6 +10,10 @@
  * @subpackage BS24_Sitemap/includes
  */
 
+ if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * Fired during plugin activation.
  *
@@ -30,13 +34,15 @@ class BS24_Sitemap_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
+		//run rewrite rules during activation
 		$sitemap_serve = new BS24_Sitemap_Serve();
 		$sitemap_serve->add_rewrite_rules();
 
 		flush_rewrite_rules();
 
-		if (!wp_next_scheduled('bs24_sitemap_daily_sitemap_event')) {
-			wp_schedule_event(time() + 40, 'daily', 'bs24_sitemap_daily_sitemap_event');
+		// event for create sitemap for daily basis
+		if ( !wp_next_scheduled('bs24_sitemap_daily_sitemap_event') ) {
+			wp_schedule_event(time() + 15, 'daily', 'bs24_sitemap_daily_sitemap_event');
 		}
 	}
 

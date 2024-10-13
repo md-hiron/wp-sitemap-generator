@@ -9,6 +9,10 @@
  * @subpackage BS24_Sitemap/includes
  */
 
+ if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * The class used for serve xml content file to url
  *
@@ -51,8 +55,6 @@ class BS24_Sitemap_Serve {
                     return; // Do nothing if an unknown sitemap is requested.
             }
 
-            error_log("Serving sitemap: $file");
-
             if( $file && file_exists( $file ) ){
                 // Serve the XML file
                 header('Content-Type: application/xml; charset=utf-8');
@@ -64,6 +66,21 @@ class BS24_Sitemap_Serve {
                  error_log("Sitemap not found");
                  exit;
             }
+        }
+
+        $video_sitemap = get_query_var('video_sitemap_type');
+        if( !empty( $video_sitemap ) ){
+            if( file_exists( BS24_VIDEO_SITEMAP ) ){
+                // Serve the XML file
+                header('Content-Type: application/xml; charset=utf-8');
+                readfile(BS24_VIDEO_SITEMAP);
+                exit;
+            }else{
+                // If the file doesn't exist, handle the error (e.g., serve 404)
+                status_header(404);
+                error_log("Video Sitemap not found");
+                exit;
+           }
         }
 
         //check if file exist
@@ -80,6 +97,7 @@ class BS24_Sitemap_Serve {
         add_rewrite_rule('^post-sitemap\.xml$', 'index.php?sitemap_type=post', 'top');
         add_rewrite_rule('^page-sitemap\.xml$', 'index.php?sitemap_type=page', 'top');
         add_rewrite_rule('^jobs-sitemap\.xml$', 'index.php?sitemap_type=jobs', 'top');
+        add_rewrite_rule('^videos-sitemap\.xml$', 'index.php?video_sitemap_type=1', 'top');
         add_rewrite_rule('^sitemap\.xml$', 'index.php?sitemap_type=main', 'top');
     }
 
@@ -88,6 +106,7 @@ class BS24_Sitemap_Serve {
      */
     public function add_query_ver( $vars ){
         $vars[] = 'sitemap_type';
+        $vars[] = 'video_sitemap_type';
 
         return $vars;
     }
