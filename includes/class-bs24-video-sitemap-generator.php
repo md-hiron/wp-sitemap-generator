@@ -57,18 +57,17 @@ Class Video_Sitemap_Generator{
 
 		do {
 			$query = new WP_Query(array(
-				'post_type' => array('post', 'page'),
+				'post_type'      => array('post', 'page'),
 				'posts_per_page' => $posts_per_page,
-				'post_status' => 'publish',
-				'paged' => $paged
+				'post_status'    => 'publish',
+				'paged'          => $paged,
+				'fields'         => 'ids'
 			));
 
 			if ($query->have_posts()) {
-				while ($query->have_posts()) {
-					$query->the_post();
+				foreach( $query->posts as $post_id ) {
 
-					$post_id = get_the_ID();
-					$post_content = sanitize_post_field('post_content', get_the_content(), $post_id, 'display');
+					$post_content = sanitize_post_field('post_content', get_post_field('post_content', $post_id), $post_id, 'display');
 
 					// Extract video URLs from post content
 					$videos = $this->get_videos_from_post($post_content, get_the_title( $post_id ));
@@ -108,7 +107,7 @@ Class Video_Sitemap_Generator{
 			} else {
 				break; // Exit the loop if no more posts are found
 			}
-		} while ($query->have_posts());
+		} while ( $query->have_posts() && $paged <= $query->max_num_pages );
 
 		// Save the XML file if videos were found
 		$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
