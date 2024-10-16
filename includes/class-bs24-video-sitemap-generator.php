@@ -121,13 +121,14 @@ Class Video_Sitemap_Generator{
 		}
 
 		if ($videos_found) {
-			// Save the final XML to file
+			// Save the final XML to file (overwriting existing file if necessary)
 			$dom->save($sitemap_dir . '/videos-sitemap.xml');
 		} else {
 			error_log("No Videos found. Creating an empty sitemap.");
 			// Save empty XML structure
 			$dom->save($sitemap_dir . '/videos-sitemap.xml');
 		}
+		
 	}
 
 	/**
@@ -182,12 +183,24 @@ Class Video_Sitemap_Generator{
 							$video_title = $this->get_youtube_video_title($video_id, $this->youtube_API, $post_title);
 
 							$videos[] = array('url' => $video_url, 'title' => $video_title);
-						}else{
-							$videos[] = array('url' => $video_url, 'title' => $post_title);
 						}
-                        //video from api title
                         
 					}
+				}
+			}
+
+			// Handle core/shortcode block for videos from shortcode
+			if( $block['blockName'] === 'core/shortcode' ){
+				$shortcode_content = $block['innerHTML'];
+
+				if( has_shortcode( $shortcode_content, 'lyte' ) ){
+					$video_id = $this->get_video_id_from_shortcode( $shortcode_content );
+					if( $video_id ){
+						$video_url   = esc_url( 'https://www.youtube.com/watch?v='. $video_id );
+						$video_title = $this->get_youtube_video_title( $video_id, $this->youtube_API, $post_title );
+						$videos[] = array( 'url' => $video_url, 'title' => $video_title );
+					}
+					
 				}
 			}
 	
@@ -255,6 +268,25 @@ Class Video_Sitemap_Generator{
         
         return null;
     }
+
+	/**
+	 * get video ID from shortcode
+	 */
+	private function get_video_id_from_shortcode( $content ){
+		if( empty( $content ) ){
+			return false;
+		}
+
+		$pattern = '/\[lyte\s+id=["\']([a-zA-Z0-9_-]+)["\']\s*\/?\]/';
+		preg_match( $pattern, $content, $matches );
+
+		if( !empty( $matches[1] ) ){
+			return $matches[1];
+		}else{
+			return false;
+		}
+		
+	}
     
     
 }
