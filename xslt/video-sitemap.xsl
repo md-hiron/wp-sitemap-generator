@@ -83,7 +83,8 @@
             <p>Learn more about <a href="http://sitemaps.org" target="_blank">XML Sitemaps</a>.</p>
         </div>
         <div id="content">
-          <table>
+         <p>Diese Indexdatei der XML-Sitemap enthält <strong><xsl:value-of select="count(sitemap:url)" /></strong> Sitemaps.</p>
+          <table id="sitemap" cellpadding="3">
             <thead>
               <tr>
                 <th>Post URL</th>
