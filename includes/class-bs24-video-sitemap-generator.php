@@ -43,34 +43,6 @@ Class Video_Sitemap_Generator{
 		$dom = new DOMDocument('1.0', 'UTF-8');
 		$dom->formatOutput = true;
 
-
-		// Your sitemap generation code...
-	
-		// Check memory usage
-		$memory_used = memory_get_usage(true);
-		$this->log_sitemap_status('Video sitemap Memory used: ' . size_format($memory_used));
-	
-		// Check execution time
-		$execution_time = microtime(true) - $start_time;
-		$this->log_sitemap_status('Video sitemap Execution time: ' . $execution_time . ' seconds.');
-	
-		// If you need to explicitly throw an error for testing
-		if ($execution_time > 290) {
-			error_log('Warning: Video sitemap Execution time nearing limit.');
-		}
-	
-		if ($memory_used > (512 * 1024 * 1024)) { // 512 MB
-			error_log('Warning: Video sitemap Memory usage nearing limit.');
-		}
-
-		register_shutdown_function(function() {
-			$error = error_get_last();
-			if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
-				error_log('Fatal error during video sitemap generation: ' . $error['message']);
-			}
-		});
-		
-
 		// Add the XML stylesheet processing instruction
 		$stylesheet = $dom->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/video-sitemap.xsl"');
 
@@ -88,88 +60,117 @@ Class Video_Sitemap_Generator{
 		$videos_found = false;
 
 		$unique_videos = [];
+		try{
+			do {
+				$query = new WP_Query(array(
+					'post_type'      => array('post', 'page'),
+					'posts_per_page' => $posts_per_page,
+					'post_status'    => 'publish',
+					'paged'          => $paged,
+					'fields'         => 'ids'
+				));
 
-		do {
-			$query = new WP_Query(array(
-				'post_type'      => array('post', 'page'),
-				'posts_per_page' => $posts_per_page,
-				'post_status'    => 'publish',
-				'paged'          => $paged,
-				'fields'         => 'ids'
-			));
+				if ($query->have_posts()) {
+					foreach( $query->posts as $post_id ) {
 
-			if ($query->have_posts()) {
-				foreach( $query->posts as $post_id ) {
+						$post_content = sanitize_post_field('post_content', get_post_field('post_content', $post_id), $post_id, 'display');
 
-					$post_content = sanitize_post_field('post_content', get_post_field('post_content', $post_id), $post_id, 'display');
+						// Extract video URLs from post content
+						$videos = $this->get_videos_from_post($post_content, get_the_title( $post_id ));
 
-					// Extract video URLs from post content
-					$videos = $this->get_videos_from_post($post_content, get_the_title( $post_id ));
-
-					// If no videos, skip further processing for this post
-					if (empty($videos)) {
-						continue;
-					}
-
-					$videos_found = true;
-					$permalink = esc_url(get_permalink($post_id)); // Compute permalink once
-
-					foreach ($videos as $video) {
-						// Skip this video if we've already added it
-						if (isset($unique_videos[$video['url']])) {
+						// If no videos, skip further processing for this post
+						if (empty($videos)) {
 							continue;
 						}
-	
-						// Mark this video as added
-						$unique_videos[$video['url']] = true;
 
-						// Create <url> element
-						$urlXML = $dom->createElement('url');
-						$urlset->appendChild($urlXML);
+						$videos_found = true;
+						$permalink = esc_url(get_permalink($post_id)); // Compute permalink once
 
-						// Add post permalink
-						$loc = $dom->createElement('loc', $permalink);
-						$urlXML->appendChild($loc);
+						foreach ($videos as $video) {
+							// Skip this video if we've already added it
+							if (isset($unique_videos[$video['url']])) {
+								continue;
+							}
+		
+							// Mark this video as added
+							$unique_videos[$video['url']] = true;
 
-						// Create <video:video> element
-						$videoXML = $dom->createElement('video:video');
-						$urlXML->appendChild($videoXML);
+							// Create <url> element
+							$urlXML = $dom->createElement('url');
+							$urlset->appendChild($urlXML);
 
-						// Add video URL
-						$content_loc = $dom->createElement('video:content_loc', esc_url($video['url']));
-						$videoXML->appendChild($content_loc);
+							// Add post permalink
+							$loc = $dom->createElement('loc', $permalink);
+							$urlXML->appendChild($loc);
 
-						// Add video title
-						$title = $dom->createElement('video:title', esc_html( $video['title'] ));
-						$videoXML->appendChild($title);
+							// Create <video:video> element
+							$videoXML = $dom->createElement('video:video');
+							$urlXML->appendChild($videoXML);
+
+							// Add video URL
+							$content_loc = $dom->createElement('video:content_loc', esc_url($video['url']));
+							$videoXML->appendChild($content_loc);
+
+							// Add video title
+							$title = $dom->createElement('video:title', esc_html( $video['title'] ));
+							$videoXML->appendChild($title);
+						}
 					}
+					wp_reset_postdata();
+					$paged++;
+				} else {
+					break; // Exit the loop if no more posts are found
 				}
-				wp_reset_postdata();
-				$paged++;
+			} while ( $query->have_posts() && $paged <= $query->max_num_pages );
+
+			// Save the XML file if videos were found
+			$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
+
+			// Create directory if it doesn't exist
+			if (!file_exists($sitemap_dir)) {
+				if (!mkdir($sitemap_dir, 0755, true)) {
+					error_log("Failed to create directory: $sitemap_dir");
+					return false;
+				}
+			}
+
+			$temp_file = $sitemap_dir . '/videos-sitemap-temp.xml';
+			$final_file = $sitemap_dir . '/videos-sitemap.xml';
+		
+			if ($videos_found) {
+				// Save the final XML to a temporary file first
+				$dom->save($temp_file);
+		
+				// Check for timeout or memory issues before renaming the file
+				$memory_used = memory_get_usage(true);
+				$execution_time = microtime(true) - $start_time;
+		
+				if ($execution_time > 290) {
+					error_log('Warning: Execution time nearing limit.');
+					unlink($temp_file); // Delete temp file if timing out
+					return false; // Stop here to avoid overwriting the old sitemap
+				}
+		
+				if ($memory_used > (512 * 1024 * 1024)) { // 512 MB
+					error_log('Warning: Memory usage nearing limit.');
+					unlink($temp_file); // Delete temp file if memory is an issue
+					return false;
+				}
+		
+				// Rename the temp file to the final file if everything is fine
+				rename($temp_file, $final_file);
 			} else {
-				break; // Exit the loop if no more posts are found
+				error_log("No videos found. Creating empty sitemap.");
+				$dom->save($final_file);
 			}
-		} while ( $query->have_posts() && $paged <= $query->max_num_pages );
-
-		// Save the XML file if videos were found
-		$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
-
-		// Create directory if it doesn't exist
-		if (!file_exists($sitemap_dir)) {
-			if (!mkdir($sitemap_dir, 0755, true)) {
-				error_log("Failed to create directory: $sitemap_dir");
-				return false;
-			}
+		}catch( Exception $e ){
+			// Log the error and schedule the retry
+			error_log("Sitemap generation failed: " . $e->getMessage());
+			$this->schedule_sitemap_retry(); // Schedule retry
+			return false;
 		}
-
-		if ($videos_found) {
-			// Save the final XML to file (overwriting existing file if necessary)
-			$dom->save($sitemap_dir . '/videos-sitemap.xml');
-		} else {
-			error_log("No Videos found. Creating an empty sitemap.");
-			// Save empty XML structure
-			$dom->save($sitemap_dir . '/videos-sitemap.xml');
-		}
+		
+	
 		
 	}
 
@@ -329,8 +330,12 @@ Class Video_Sitemap_Generator{
 		}	
 	}
 
-	// Logging function to write messages to the log file
-	private function log_sitemap_status($message) {
-		error_log('[Video Sitemap] ' . $message);
+	//retry if fail video sitemap creation
+	private function schedule_sitemap_retry(){
+		 // Check if the event is already scheduled to avoid duplication
+		 if (!wp_next_scheduled('retry_video_sitemap_generation')) {
+			// Schedule the retry to run after one hour (3600 seconds)
+			wp_schedule_single_event(time() + 180, 'retry_video_sitemap_generation');
+		}
 	}
 }

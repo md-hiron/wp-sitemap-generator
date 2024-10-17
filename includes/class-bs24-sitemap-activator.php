@@ -42,7 +42,7 @@ class BS24_Sitemap_Activator {
 
 		// event for create sitemap for daily basis
 		if ( !wp_next_scheduled('bs24_sitemap_daily_sitemap_event') ) {
-			wp_schedule_event(time() + 15, 'hourly', 'bs24_sitemap_daily_sitemap_event');
+			wp_schedule_event(time() + 15, 'daily', 'bs24_sitemap_daily_sitemap_event');
 		}
 	}
 

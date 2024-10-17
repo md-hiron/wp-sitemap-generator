@@ -162,8 +162,12 @@ class BS24_Sitemap {
 	private function generate_sitemap_xml(){
 
 		$sitemap_generator       = new BS24_Sitemap_XML_Generator();
+		$video_sitemap_generator = new Video_Sitemap_Generator();
 
 		$this->loader->add_action( 'bs24_sitemap_daily_sitemap_event', $sitemap_generator, 'generate_daily_sitemaps' );
+		$this->loader->add_action( 'retry_post_sitemap_generation', $sitemap_generator, 'generate_sitemap' );
+		$this->loader->add_action( 'retry_main_sitemap_generation', $sitemap_generator, 'generate_main_sitemap' );
+		$this->loader->add_action( 'retry_video_sitemap_generation', $video_sitemap_generator, 'generate_video_sitemap' );
 	}
 
 	/**
