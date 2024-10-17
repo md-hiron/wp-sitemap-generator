@@ -37,6 +37,40 @@ class BS24_Sitemap_XML_Generator {
         if( empty( $post_type ) || empty( $file_path ) ){
 			return false;
 		}
+
+		// Start time
+		$start_time = microtime(true);
+
+		// Increase memory limit and timeout to prevent errors
+		@ini_set('memory_limit', '512M');
+		@ini_set('max_execution_time', 300); // 5 minutes
+	
+		// Your sitemap generation code...
+	
+		// Check memory usage
+		$memory_used = memory_get_usage(true);
+		$this->log_sitemap_status($post_type . ' sitemap Memory used: ' . size_format($memory_used));
+	
+		// Check execution time
+		$execution_time = microtime(true) - $start_time;
+		$this->log_sitemap_status($post_type . ' sitemap Execution time: ' . $execution_time . ' seconds.');
+	
+	
+		// If you need to explicitly throw an error for testing
+		if ($execution_time > 290) {
+			error_log('Warning: Execution time nearing limit.');
+		}
+	
+		if ($memory_used > (512 * 1024 * 1024)) { // 512 MB
+			error_log('Warning: Memory usage nearing limit.');
+		}
+
+		register_shutdown_function(function() {
+			$error = error_get_last();
+			if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+				error_log('Fatal error during '. $post_type .' sitemap generation: ' . $error['message']);
+			}
+		});
 	
 		// Directory path for sitemaps
 		$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
@@ -217,6 +251,11 @@ class BS24_Sitemap_XML_Generator {
 
 		// End and clean output buffer
 		ob_end_clean();
+	}
+
+	// Logging function to write messages to the log file
+	private function log_sitemap_status($message) {
+		error_log('[sitemap generator] ' . $message);
 	}
 
 

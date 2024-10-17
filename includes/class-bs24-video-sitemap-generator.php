@@ -35,9 +35,41 @@ Class Video_Sitemap_Generator{
 	 * This will create video sitemap on every post and page
 	 */
 	public function generate_video_sitemap(){
+
+		// Start time
+		$start_time = microtime(true);
+
 		// Initiate DOMDocument (optimized, use directly instead of SimpleXMLElement for large datasets)
 		$dom = new DOMDocument('1.0', 'UTF-8');
 		$dom->formatOutput = true;
+
+
+		// Your sitemap generation code...
+	
+		// Check memory usage
+		$memory_used = memory_get_usage(true);
+		$this->log_sitemap_status('Video sitemap Memory used: ' . size_format($memory_used));
+	
+		// Check execution time
+		$execution_time = microtime(true) - $start_time;
+		$this->log_sitemap_status('Video sitemap Execution time: ' . $execution_time . ' seconds.');
+	
+		// If you need to explicitly throw an error for testing
+		if ($execution_time > 290) {
+			error_log('Warning: Video sitemap Execution time nearing limit.');
+		}
+	
+		if ($memory_used > (512 * 1024 * 1024)) { // 512 MB
+			error_log('Warning: Video sitemap Memory usage nearing limit.');
+		}
+
+		register_shutdown_function(function() {
+			$error = error_get_last();
+			if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+				error_log('Fatal error during video sitemap generation: ' . $error['message']);
+			}
+		});
+		
 
 		// Add the XML stylesheet processing instruction
 		$stylesheet = $dom->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/video-sitemap.xsl"');
@@ -54,6 +86,8 @@ Class Video_Sitemap_Generator{
 		$posts_per_page = 500; // Fetch 500 posts per batch to reduce memory load
 		$paged = 1;
 		$videos_found = false;
+
+		$unique_videos = [];
 
 		do {
 			$query = new WP_Query(array(
@@ -293,5 +327,10 @@ Class Video_Sitemap_Generator{
 		}else{
 			return false;
 		}	
+	}
+
+	// Logging function to write messages to the log file
+	private function log_sitemap_status($message) {
+		error_log('[Video Sitemap] ' . $message);
 	}
 }
