@@ -81,6 +81,14 @@ Class Video_Sitemap_Generator{
 					$permalink = esc_url(get_permalink($post_id)); // Compute permalink once
 
 					foreach ($videos as $video) {
+						// Skip this video if we've already added it
+						if (isset($unique_videos[$video['url']])) {
+							continue;
+						}
+	
+						// Mark this video as added
+						$unique_videos[$video['url']] = true;
+
 						// Create <url> element
 						$urlXML = $dom->createElement('url');
 						$urlset->appendChild($urlXML);
@@ -284,9 +292,6 @@ Class Video_Sitemap_Generator{
 			return $matches[1];
 		}else{
 			return false;
-		}
-		
+		}	
 	}
-    
-    
 }
