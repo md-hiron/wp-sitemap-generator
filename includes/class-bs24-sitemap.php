@@ -166,7 +166,7 @@ class BS24_Sitemap {
 
 		//generate post, page, jobs sitemap
 		$this->loader->add_action( 'bs24_sitemap_daily_sitemap_event', $sitemap_generator, 'generate_daily_sitemaps' );
-		$this->loader->add_action( 'retry_post_sitemap_generation', $sitemap_generator, 'generate_sitemap' );
+		$this->loader->add_action( 'retry_post_sitemap_generation', $sitemap_generator, 'generate_daily_sitemaps' );
 		
 		//generate video sitemap
 		$this->loader->add_action( 'bs24_sitemap_daily_video_sitemap_event', $video_sitemap_generator, 'generate_video_sitemap' );
@@ -174,7 +174,6 @@ class BS24_Sitemap {
 
 		//gnerate main site map
 		$this->loader->add_action( 'bs24_sitemap_daily_video_sitemap_event', $sitemap_generator, 'generate_main_sitemap' );
-		$this->loader->add_action( 'retry_main_sitemap_generation', $sitemap_generator, 'generate_main_sitemap' );
 	}
 
 	/**

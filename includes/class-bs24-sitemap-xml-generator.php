@@ -23,6 +23,17 @@
  */
 class BS24_Sitemap_XML_Generator {
 
+	protected $start_time;
+	protected $memory_limit = 512 * 1024 * 1024; // 512 MB
+    protected $execution_limit = 290;
+
+	/**
+	 * contractor function
+	 */
+	public function __construct(){
+		$this->start_time = microtime(true);
+	}
+
 	/**
 	 * Generate sitemap
 	 *
@@ -38,8 +49,11 @@ class BS24_Sitemap_XML_Generator {
 			return false;
 		}
 
-		// Start time
-		$start_time = microtime(true);
+		// Register custom error handler
+		set_error_handler([$this, 'custom_error_handler']);
+    
+		// Register shutdown function for catching fatal errors
+		register_shutdown_function([$this, 'shutdown_handler']);
 
 		// Directory path for sitemaps
 		$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
@@ -134,12 +148,16 @@ class BS24_Sitemap_XML_Generator {
 					}
 				}
 		
-				// Increment page number for next batch
-				$paged++;
-		
 				// Reset query
 				wp_reset_postdata();
 		
+				// Increment page number for next batch
+				$paged++;
+
+				// Monitor memory usage and execution time
+				if (!$this->check_memory_and_time()) {
+					return false; // Stop execution if nearing limits
+				}
 			} while ( $query->have_posts() && $paged <= $query->max_num_pages );
 		
 			// Save the XML content to a file
@@ -150,6 +168,7 @@ class BS24_Sitemap_XML_Generator {
 					error_log("Failed to rename temp file: $post_type");
 				}
 			}
+			
 		}catch( Exception $e ){
 			// Log the error and schedule the retry
 			error_log("Sitemap generation failed: " . $e->getMessage());
@@ -165,68 +184,61 @@ class BS24_Sitemap_XML_Generator {
 	 * @since    1.0.0
 	 */
 	public function generate_main_sitemap(){
-		try{
-			$dom = new DOMDocument('1.0', 'UTF-8');
-			$dom->formatOutput = true;
+		$dom = new DOMDocument('1.0', 'UTF-8');
+		$dom->formatOutput = true;
 
-			// Add the XML stylesheet processing instruction
-			$stylesheet = $dom->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/mainsitemap.xsl"');
+		// Add the XML stylesheet processing instruction
+		$stylesheet = $dom->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="'. BS24_SITEMAP_URL .'xslt/mainsitemap.xsl"');
 
-			$dom->appendChild($stylesheet);
-			
-			// Create <urlset> element
-			$sitemapIndex = $dom->createElement('sitemapindex');
-
-			$sitemapIndex->setAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
-			$dom->appendChild($sitemapIndex);
-
-			$sitemap_types = array('post-sitemap.xml', 'page-sitemap.xml', 'jobs-sitemap.xml', 'videos-sitemap.xml');
-
-			// Directory path for sitemaps
-			
-			$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
-			
-			// Check if the 'sitemap' directory exists, if not, create it
-			if ( ! file_exists( $sitemap_dir ) ) {
-				if ( ! mkdir( $sitemap_dir, 0755, true ) ) { // Create the directory with proper permissions
-					error_log("Failed to create directory: $sitemap_dir");
-					return false;
-				}
-			}
-
-			$sitemap_temp_file = $sitemap_dir . '/temp-sitemap.xml';
-			$sitemap_file = $sitemap_dir . '/sitemap.xml';
-			
-			foreach ($sitemap_types as $sitemap) {
-
-				// Create <url> element
-				$sitemap_url = $dom->createElement('sitemap');
+		$dom->appendChild($stylesheet);
 		
-				// Add <loc> element
-				$loc = $dom->createElement('loc', get_site_url() . '/' . $sitemap );
-				$sitemap_url->appendChild($loc);
+		// Create <urlset> element
+		$sitemapIndex = $dom->createElement('sitemapindex');
 
-				// Add <lastmod> element with modified date in ISO 8601 format
-				$lastmod = $dom->createElement('lastmod',  gmdate('c', filemtime( $sitemap_dir . '/' . $sitemap)) );
-				$sitemap_url->appendChild($lastmod);
+		$sitemapIndex->setAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+		$dom->appendChild($sitemapIndex);
 
-				$sitemapIndex->appendChild( $sitemap_url );
+		$sitemap_types = array('post-sitemap.xml', 'page-sitemap.xml', 'jobs-sitemap.xml', 'videos-sitemap.xml');
 
+		// Directory path for sitemaps
+		
+		$sitemap_dir = BS24_SITEMAP_DIR . 'sitemap';
+		
+		// Check if the 'sitemap' directory exists, if not, create it
+		if ( ! file_exists( $sitemap_dir ) ) {
+			if ( ! mkdir( $sitemap_dir, 0755, true ) ) { // Create the directory with proper permissions
+				error_log("Failed to create directory: $sitemap_dir");
+				return false;
 			}
+		}
 
-			// Save the main sitemap XML
-			if( ! $dom->save($sitemap_temp_file) ){
-				error_log("Failed to save sitemap for main sitemap");
-			}else {
-				if( !rename( $sitemap_temp_file, $sitemap_file ) ){
-					error_log("Failed to rename sitemap for main sitemap");
-				}
+		$sitemap_temp_file = $sitemap_dir . '/temp-sitemap.xml';
+		$sitemap_file = $sitemap_dir . '/sitemap.xml';
+		
+		foreach ($sitemap_types as $sitemap) {
+
+			// Create <url> element
+			$sitemap_url = $dom->createElement('sitemap');
+	
+			// Add <loc> element
+			$loc = $dom->createElement('loc', get_site_url() . '/' . $sitemap );
+			$sitemap_url->appendChild($loc);
+
+			// Add <lastmod> element with modified date in ISO 8601 format
+			$lastmod = $dom->createElement('lastmod',  gmdate('c', filemtime( $sitemap_dir . '/' . $sitemap)) );
+			$sitemap_url->appendChild($lastmod);
+
+			$sitemapIndex->appendChild( $sitemap_url );
+
+		}
+
+		// Save the main sitemap XML
+		if( ! $dom->save($sitemap_temp_file) ){
+			error_log("Failed to save sitemap for main sitemap");
+		}else {
+			if( !rename( $sitemap_temp_file, $sitemap_file ) ){
+				error_log("Failed to rename sitemap for main sitemap");
 			}
-		}catch( Exception $e ){
-			// Log the error and schedule the retry
-			error_log("Sitemap generation failed: " . $e->getMessage());
-			$this->schedule_main_sitemap_retry(); // Schedule retry
-			return false;
 		}
 	}
 
@@ -253,16 +265,48 @@ class BS24_Sitemap_XML_Generator {
 		   // Schedule the retry to run after one hour (3600 seconds)
 		   wp_schedule_single_event(time() + 180, 'retry_post_sitemap_generation');
 	   }
-   }
+   	}
 
-   //retry if fail video sitemap creation
-	private function schedule_main_sitemap_retry(){
-		// Check if the event is already scheduled to avoid duplication
-		if (!wp_next_scheduled('retry_main_sitemap_generation')) {
-		   // Schedule the retry to run after one hour (3600 seconds)
-		   wp_schedule_single_event(time() + 180, 'retry_main_sitemap_generation');
-	   }
-   }
+	// Custom error handler for memory exhaustion
+	public function custom_error_handler($errno, $errstr, $errfile, $errline) {
+		if (strpos($errstr, 'Allowed memory size') !== false) {
+			// Memory exhaustion detected
+			error_log("Memory exhaustion detected in $errfile on line $errline: $errstr");
+			$this->schedule_sitemap_retry();
+			return true; // Handle error
+		}
+		return false; // Let other errors proceed to default handler
+	}
+
+	// Shutdown function to handle fatal errors
+	public function shutdown_handler() {
+		$error = error_get_last();
+		if ($error && $error['type'] === E_ERROR) {
+			if (strpos($error['message'], 'Allowed memory size') !== false) {
+				error_log("Fatal error due to memory exhaustion. Triggering retry.");
+				$this->schedule_sitemap_retry();
+			}
+		}
+	}
+
+	protected function check_memory_and_time() {
+		$memory_used = memory_get_usage(true);
+		$execution_time = microtime(true) - $this->start_time;
+
+		if ($execution_time > $this->execution_limit) {
+			error_log("Warning: Execution time nearing limit. Triggering retry.");
+			$this->schedule_sitemap_retry();
+			return false;
+		}
+
+		if ($memory_used > $this->memory_limit) {
+			error_log("Warning: Memory usage nearing limit. Triggering retry.");
+			$this->schedule_sitemap_retry();
+			return false;
+		}
+
+		return true; // Continue if within limits
+	}
 
 
 }

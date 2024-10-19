@@ -24,9 +24,14 @@
 Class Video_Sitemap_Generator{
 	//Yoututbe video API
     private $youtube_API;
+	protected $start_time;
+	protected $memory_limit = 512 * 1024 * 1024; // 512 MB
+    protected $execution_limit = 290;
+
 
     public function __construct(){
         $this->youtube_API = 'AIzaSyBiv1WYEoaNcl2wZaxq5A-T64pMUAg7iDU';
+		$this->start_time = microtime(true);
     }
 
     /**
@@ -36,8 +41,11 @@ Class Video_Sitemap_Generator{
 	 */
 	public function generate_video_sitemap(){
 
-		// Start time
-		$start_time = microtime(true);
+		// Register custom error handler
+		set_error_handler([$this, 'custom_error_handler']);
+    
+		// Register shutdown function for catching fatal errors
+		register_shutdown_function([$this, 'shutdown_handler']);
 
 		// Initiate DOMDocument (optimized, use directly instead of SimpleXMLElement for large datasets)
 		$dom = new DOMDocument('1.0', 'UTF-8');
@@ -121,6 +129,11 @@ Class Video_Sitemap_Generator{
 				} else {
 					break; // Exit the loop if no more posts are found
 				}
+
+				// Monitor memory usage and execution time
+				if (!$this->check_memory_and_time()) {
+					return false; // Stop execution if nearing limits
+				}
 			} while ( $query->have_posts() && $paged <= $query->max_num_pages );
 
 			// Save the XML file if videos were found
@@ -140,22 +153,6 @@ Class Video_Sitemap_Generator{
 			if ($videos_found) {
 				// Save the final XML to a temporary file first
 				$dom->save($temp_file);
-		
-				// Check for timeout or memory issues before renaming the file
-				$memory_used = memory_get_usage(true);
-				$execution_time = microtime(true) - $start_time;
-		
-				if ($execution_time > 290) {
-					error_log('Warning: Execution time nearing limit.');
-					unlink($temp_file); // Delete temp file if timing out
-					return false; // Stop here to avoid overwriting the old sitemap
-				}
-		
-				if ($memory_used > (512 * 1024 * 1024)) { // 512 MB
-					error_log('Warning: Memory usage nearing limit.');
-					unlink($temp_file); // Delete temp file if memory is an issue
-					return false;
-				}
 		
 				// Rename the temp file to the final file if everything is fine
 				rename($temp_file, $final_file);
@@ -337,5 +334,46 @@ Class Video_Sitemap_Generator{
 			// Schedule the retry to run after one hour (3600 seconds)
 			wp_schedule_single_event(time() + 180, 'retry_video_sitemap_generation');
 		}
+	}
+
+	// Custom error handler for memory exhaustion
+	public function custom_error_handler($errno, $errstr, $errfile, $errline) {
+		if (strpos($errstr, 'Allowed memory size') !== false) {
+			// Memory exhaustion detected
+			error_log("Memory exhaustion detected in $errfile on line $errline: $errstr");
+			$this->schedule_sitemap_retry();
+			return true; // Handle error
+		}
+		return false; // Let other errors proceed to default handler
+	}
+
+	// Shutdown function to handle fatal errors
+	public function shutdown_handler() {
+		$error = error_get_last();
+		if ($error && $error['type'] === E_ERROR) {
+			if (strpos($error['message'], 'Allowed memory size') !== false) {
+				error_log("Fatal error due to memory exhaustion. Triggering retry.");
+				$this->schedule_sitemap_retry();
+			}
+		}
+	}
+
+	protected function check_memory_and_time() {
+		$memory_used = memory_get_usage(true);
+		$execution_time = microtime(true) - $this->start_time;
+
+		if ($execution_time > $this->execution_limit) {
+			error_log("Warning: Execution time nearing limit. Triggering retry.");
+			$this->schedule_sitemap_retry();
+			return false;
+		}
+
+		if ($memory_used > $this->memory_limit) {
+			error_log("Warning: Memory usage nearing limit. Triggering retry.");
+			$this->schedule_sitemap_retry();
+			return false;
+		}
+
+		return true; // Continue if within limits
 	}
 }
