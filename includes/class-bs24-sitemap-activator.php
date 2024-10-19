@@ -44,6 +44,10 @@ class BS24_Sitemap_Activator {
 		if ( !wp_next_scheduled('bs24_sitemap_daily_sitemap_event') ) {
 			wp_schedule_event(time() + 15, 'daily', 'bs24_sitemap_daily_sitemap_event');
 		}
+
+		if ( !wp_next_scheduled('bs24_sitemap_daily_video_sitemap_event') ) {
+			wp_schedule_event(time() + 420, 'daily', 'bs24_sitemap_daily_video_sitemap_event');
+		}
 	}
 
 }

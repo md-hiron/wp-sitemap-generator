@@ -240,12 +240,6 @@ class BS24_Sitemap_XML_Generator {
 		$this->generate_sitemap('post', 'post-sitemap.xml');
 		$this->generate_sitemap('page', 'page-sitemap.xml');
 		$this->generate_sitemap('jobs', 'jobs-sitemap.xml');
-
-		$video_sitemap_generator = new Video_Sitemap_Generator();
-
-		$video_sitemap_generator->generate_video_sitemap();
-
-		$this->generate_main_sitemap();
 		
 
 		// End and clean output buffer

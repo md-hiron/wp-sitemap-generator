@@ -39,6 +39,11 @@ class BS24_Sitemap_Deactivator {
 			wp_unschedule_event( $timestamp, 'bs24_sitemap_daily_sitemap_event' );
 		}
 
+		$video_timestamp = wp_next_scheduled( 'bs24_sitemap_daily_video_sitemap_event' );
+		if( $video_timestamp ){
+			wp_unschedule_event( $video_timestamp, 'bs24_sitemap_daily_video_sitemap_event' );
+		}
+
 		flush_rewrite_rules();
 	}
 
