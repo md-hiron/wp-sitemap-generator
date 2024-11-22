@@ -41,8 +41,10 @@ define('BS24_PAGE_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/page-sitemap.xml');
 define('BS24_JOBS_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/jobs-sitemap.xml');
 define('BS24_VIDEO_SITEMAP', BS24_SITEMAP_DIR . 'sitemap/videos-sitemap.xml');
 
-
-
+//make display error 0
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+	ini_set( 'display_errors', 0 ); // Disable error display
+}
 
 
 /**
