@@ -81,6 +81,12 @@ Class Video_Sitemap_Generator{
 				if ($query->have_posts()) {
 					foreach( $query->posts as $post_id ) {
 
+						//exclude pages which is set no index from rankmath SEO plugin
+						$robot_meta = get_post_meta( $post_id, 'rank_math_robots', true );
+						if( is_array( $robot_meta ) && in_array( 'noindex', $robot_meta ) ){
+							continue;
+						}
+
 						$post_content = sanitize_post_field('post_content', get_post_field('post_content', $post_id), $post_id, 'display');
 
 						// Extract video URLs from post content
