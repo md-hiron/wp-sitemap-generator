@@ -25,7 +25,7 @@ Class Video_Sitemap_Generator{
 	//Yoututbe video API
     private $youtube_API;
 	protected $start_time;
-	protected $memory_limit = 512 * 1024 * 1024; // 512 MB
+	protected $memory_limit = 1500 * 1024 * 1024; // 512 MB
     protected $execution_limit = 290;
 
 

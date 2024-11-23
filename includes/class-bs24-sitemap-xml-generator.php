@@ -24,7 +24,7 @@
 class BS24_Sitemap_XML_Generator {
 
 	protected $start_time;
-	protected $memory_limit = 512 * 1024 * 1024; // 512 MB
+	protected $memory_limit = 1500 * 1024 * 1024; // 512 MB
     protected $execution_limit = 290;
 
 	/**
@@ -73,7 +73,7 @@ class BS24_Sitemap_XML_Generator {
 		$query_all_posts = new WP_Query( array(
 			'post_type'      => sanitize_text_field( $post_type ),
 			'post_status'    => 'publish',
-			'posts_per_page' => -1, // Get all posts to count the total
+			'posts_per_page' => 1, // Get all posts to count the total
 			'fields'         => 'ids'
 		));
 	
