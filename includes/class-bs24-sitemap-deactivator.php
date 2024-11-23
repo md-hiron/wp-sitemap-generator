@@ -34,15 +34,13 @@ class BS24_Sitemap_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-		$timestamp = wp_next_scheduled( 'bs24_sitemap_daily_sitemap_event' );
-		if( $timestamp ){
-			wp_unschedule_event( $timestamp, 'bs24_sitemap_daily_sitemap_event' );
-		}
 
-		$video_timestamp = wp_next_scheduled( 'bs24_sitemap_daily_video_sitemap_event' );
-		if( $video_timestamp ){
-			wp_unschedule_event( $video_timestamp, 'bs24_sitemap_daily_video_sitemap_event' );
-		}
+		wp_clear_scheduled_hook('bs24_sitemap_one_time_sitemap_generation_event');
+		wp_clear_scheduled_hook('bs24_sitemap_daily_sitemap_event');
+		wp_clear_scheduled_hook('retry_post_sitemap_generation');
+		wp_clear_scheduled_hook('bs24_sitemap_one_time_video_sitemap_generation_event');
+		wp_clear_scheduled_hook('bs24_sitemap_daily_video_sitemap_event');
+		wp_clear_scheduled_hook('retry_video_sitemap_generation');
 
 		flush_rewrite_rules();
 	}

@@ -40,13 +40,27 @@ class BS24_Sitemap_Activator {
 
 		flush_rewrite_rules();
 
-		// event for create sitemap for daily basis
+		//run one time event after plugin activation 
+		if( !wp_next_scheduled( 'bs24_sitemap_one_time_sitemap_generation_event' ) ){
+			wp_schedule_single_event( time() + 15, 'bs24_sitemap_one_time_sitemap_generation_event' );
+		}
+
+		if( !wp_next_scheduled( 'bs24_sitemap_one_time_video_sitemap_generation_event' ) ){
+			wp_schedule_single_event( time() + 420, 'bs24_sitemap_one_time_video_sitemap_generation_event' );
+		}
+
+
+		// Run daily at 3AM in Garman Time
+		$timezone    = new DateTimeZone('Europe/Berlin');
+		$german_time = new DateTime( 'tomorrow 3:00', $timezone );
+		$utc_time    = $german_time->setTimezone( new DateTimeZone('UTC') )->getTimestamp();
+
 		if ( !wp_next_scheduled('bs24_sitemap_daily_sitemap_event') ) {
-			wp_schedule_event(time() + 15, 'daily', 'bs24_sitemap_daily_sitemap_event');
+			wp_schedule_event($utc_time, 'daily', 'bs24_sitemap_daily_sitemap_event');
 		}
 
 		if ( !wp_next_scheduled('bs24_sitemap_daily_video_sitemap_event') ) {
-			wp_schedule_event(time() + 420, 'daily', 'bs24_sitemap_daily_video_sitemap_event');
+			wp_schedule_event($utc_time + 420, 'daily', 'bs24_sitemap_daily_video_sitemap_event');
 		}
 	}
 

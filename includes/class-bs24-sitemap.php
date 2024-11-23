@@ -164,15 +164,28 @@ class BS24_Sitemap {
 		$sitemap_generator       = new BS24_Sitemap_XML_Generator();
 		$video_sitemap_generator = new Video_Sitemap_Generator();
 
-		//generate post, page, jobs sitemap
+		//generate post, page, jobs sitemap after install plugin
+		$this->loader->add_action( 'bs24_sitemap_one_time_sitemap_generation_event', $sitemap_generator, 'generate_daily_sitemaps' );
+
+		//generate post, page, jobs sitemap for daily basis
 		$this->loader->add_action( 'bs24_sitemap_daily_sitemap_event', $sitemap_generator, 'generate_daily_sitemaps' );
+
+		//generate post, page, jobs sitemap if sitemap generation fails
 		$this->loader->add_action( 'retry_post_sitemap_generation', $sitemap_generator, 'generate_daily_sitemaps' );
 		
-		//generate video sitemap
+		//generate video sitemap after install plugin
+		$this->loader->add_action( 'bs24_sitemap_one_time_video_sitemap_generation_event', $video_sitemap_generator, 'generate_video_sitemap' );
+		
+		//generate video sitemap for daily basis
 		$this->loader->add_action( 'bs24_sitemap_daily_video_sitemap_event', $video_sitemap_generator, 'generate_video_sitemap' );
+
+		//generate video sitemap if generation fails
 		$this->loader->add_action( 'retry_video_sitemap_generation', $video_sitemap_generator, 'generate_video_sitemap' );
 
-		//gnerate main site map
+		//gnerate main sitemap after install plugin
+		$this->loader->add_action( 'bs24_sitemap_one_time_video_sitemap_generation_event', $sitemap_generator, 'generate_main_sitemap' );
+
+		//gnerate main sitemap for daily basis
 		$this->loader->add_action( 'bs24_sitemap_daily_video_sitemap_event', $sitemap_generator, 'generate_main_sitemap' );
 	}
 
