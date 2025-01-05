@@ -43,7 +43,7 @@ class BS24_Sitemap_XML_Generator {
      * @param file_path string need the file path to generate the file
 	 * @since    1.0.0
 	 */
-	public function generate_sitemap( $post_type, $file_path ) {
+	public function generate_sitemap( $post_type, $file_path, $is_dynamic = false, $is_googlebot = false ) {
 
         if( empty( $post_type ) || empty( $file_path ) ){
 			return false;
@@ -125,9 +125,17 @@ class BS24_Sitemap_XML_Generator {
 				if ( $query->have_posts() ) {
 					foreach ( $query->posts as $post_id ) {
 						
+						
+						$robot_meta     = get_post_meta( $post_id, 'rank_math_robots', true );
+						$googlebot_meta =  get_post_meta( $post_id, '_no_index_google', true );
+
 						//exclude pages which is set no index from rankmath SEO plugin
-						$robot_meta = get_post_meta( $post_id, 'rank_math_robots', true );
 						if( is_array( $robot_meta ) && in_array( 'noindex', $robot_meta ) ){
+							continue;
+						}
+
+						//exclude post and pages which is set no index from google
+						if( $googlebot_meta && $is_googlebot ){
 							continue;
 						}
 
@@ -166,6 +174,10 @@ class BS24_Sitemap_XML_Generator {
 					return false; // Stop execution if nearing limits
 				}
 			} while ( $query->have_posts() && $paged <= $query->max_num_pages );
+
+			if( $is_dynamic ){
+				return $dom->saveXML();
+			}
 		
 			// Save the XML content to a file
 			if (!$dom->save($new_temp_file_path)) {
@@ -315,5 +327,23 @@ class BS24_Sitemap_XML_Generator {
 		return true; // Continue if within limits
 	}
 
+	/**
+	 * Check google bot
+	 */
+	public function is_googlebot(){
+		$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		return stripos( $user_agent, 'Googlebot' ) !== false;
+	}
 
+	/**
+	 * add no index header for googlebot
+	 */
+	public function add_no_index_header_for_googlebot(){
+		if( is_singular() && $this->is_googlebot() ){
+			$googlebot_meta =  get_post_meta( get_the_ID(), '_no_index_google', true );
+			if( $googlebot_meta ){
+				header( 'X-Robots-Tag: no-index, nofollow', true );
+			}
+		}
+	}
 }

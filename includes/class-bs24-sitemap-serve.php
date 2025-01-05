@@ -31,6 +31,7 @@ class BS24_Sitemap_Serve {
 	 * @since    1.0.0
 	 */
     public function sitemap_redirect(){
+        $sitemap_xml_generator = new BS24_Sitemap_XML_Generator();
         // get our custom query var
         $sitemap_type = get_query_var('sitemap_type');
         // Initialize the $file variable to false
@@ -53,6 +54,16 @@ class BS24_Sitemap_Serve {
                     break;
                 default:
                     return; // Do nothing if an unknown sitemap is requested.
+            }
+
+            $is_googlebot = ( isset( $_SERVER['HTTP_USER_AGENT'] ) && stripos( $_SERVER['HTTP_USER_AGENT'], 'Googlebot' ) !== false );
+            if( $is_googlebot ){
+               $dynamic_content =  $sitemap_xml_generator->generate_sitemap( $sitemap_type, $sitemap_type . '-sitemap.xml', true, $is_googlebot );
+               if( $dynamic_content ){
+                    header('Content-Type: application/xml; charset=utf-8');
+                    echo $dynamic_content;
+                    exit;
+               }
             }
 
             if( $file && file_exists( $file ) ){
@@ -82,9 +93,6 @@ class BS24_Sitemap_Serve {
                 exit;
            }
         }
-
-        //check if file exist
-        
         
     }
 

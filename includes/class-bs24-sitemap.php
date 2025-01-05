@@ -71,8 +71,8 @@ class BS24_Sitemap {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		if ( defined( 'PLUGIN_NAME_VERSION' ) ) {
-			$this->version = PLUGIN_NAME_VERSION;
+		if ( defined( 'BS24_SITEMAP_VERSION' ) ) {
+			$this->version = BS24_SITEMAP_VERSION;
 		} else {
 			$this->version = '1.0.0';
 		}
@@ -135,6 +135,12 @@ class BS24_Sitemap {
 		 */
 		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-serve.php';
 
+		/**
+		 * The class responsible for custom field for No index for google 
+		 * of the plugin.
+		 */
+		require_once BS24_SITEMAP_DIR . 'includes/class-bs24-sitemap-custom-field.php';
+
 		
 
 	}
@@ -163,6 +169,12 @@ class BS24_Sitemap {
 
 		$sitemap_generator       = new BS24_Sitemap_XML_Generator();
 		$video_sitemap_generator = new Video_Sitemap_Generator();
+		$no_index_custom_field   = new BS24_Custom_Field();
+
+		//load custom field in post and page
+		$this->loader->add_action( 'add_meta_boxes', $no_index_custom_field, 'add_custom_field_box' );
+		$this->loader->add_action( 'save_post', $no_index_custom_field, 'save_no_index_meta_box' );
+		$this->loader->add_action( 'template_redirect', $sitemap_generator, 'add_no_index_header_for_googlebot' );
 
 		//generate post, page, jobs sitemap after install plugin
 		$this->loader->add_action( 'bs24_sitemap_one_time_sitemap_generation_event', $sitemap_generator, 'generate_daily_sitemaps' );
