@@ -34,7 +34,7 @@ class BS24_Custom_Field {
 			'no_index_google',
 			__( 'No Index in Google', 'bs24-sitemap-generator' ),
 			array( $this, 'render_no_index_metabox' ),
-			array( 'post', 'page' ),
+			array( 'post', 'page', 'page-generator-pro' ),
 			'side',
 			'high'
 		);
