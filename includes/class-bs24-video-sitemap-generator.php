@@ -25,13 +25,15 @@ Class Video_Sitemap_Generator{
 	//Yoututbe video API
     private $youtube_API;
 	protected $start_time;
-	protected $memory_limit = 1500 * 1024 * 1024; // 512 MB
-    protected $execution_limit = 290;
+	protected $memory_limit; // 512 MB
+    protected $execution_limit;
 
 
     public function __construct(){
-        $this->youtube_API = 'AIzaSyBiv1WYEoaNcl2wZaxq5A-T64pMUAg7iDU';
-		$this->start_time = microtime(true);
+        $this->youtube_API     = 'AIzaSyBiv1WYEoaNcl2wZaxq5A-T64pMUAg7iDU';
+		$this->start_time      = microtime(true);
+		$this->memory_limit    = wp_convert_hr_to_bytes( ini_get('memory_limit') );
+		$this->execution_limit = ini_get('max_execution_time') - 10;
     }
 
     /**

@@ -24,14 +24,16 @@
 class BS24_Sitemap_XML_Generator {
 
 	protected $start_time;
-	protected $memory_limit = 1500 * 1024 * 1024; // 512 MB
-    protected $execution_limit = 290;
+	protected $memory_limit;
+    protected $execution_limit;
 
 	/**
 	 * contractor function
 	 */
 	public function __construct(){
-		$this->start_time = microtime(true);
+		$this->start_time      = microtime(true);
+		$this->memory_limit    = wp_convert_hr_to_bytes( ini_get('memory_limit') );
+		$this->execution_limit = ini_get('max_execution_time') - 10;
 	}
 
 	/**
